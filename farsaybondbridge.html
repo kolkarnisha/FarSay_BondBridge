@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FarSay BondBridge</title>
+  <link rel="stylesheet" href="farsay.css" />
+</head>
+<body>
+  <div class="container">
+    <section class="hero">
+      <div>
+        <span class="badge">Luxury • Elegant • Memorable</span>
+        <h1>FarSay BondBridge</h1>
+        <p>Create beautiful celebrations with smart planning, premium styling, and budget-friendly event recommendations tailored to your occasion.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#plannerSection">Plan Your Event</a>
+          <a class="btn btn-secondary" href="#registerForm">Register Now</a>
+        </div>
+      </div>
+      <div class="hero-media">
+        <img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=900&q=80" alt="Elegant event decoration" />
+      </div>
+    </section>
+
+    <div class="highlights">
+      <div class="feature-card">
+        <h3>Elegant Themes</h3>
+        <p>From glamorous weddings to intimate anniversaries, every celebration is styled with care.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Smart Budget Matching</h3>
+        <p>Get a thoughtful recommendation that suits your budget and celebration goals.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Trusted Planning</h3>
+        <p>Professional support for venue, decoration, catering, and entertainment needs.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>User Registration</h2>
+        <form id="registerForm">
+          <input id="regUsername" placeholder="Enter username" required />
+          <input id="regPassword" type="password" placeholder="Enter password" required />
+          <button type="submit">Register</button>
+        </form>
+        <div id="registerMessage" class="message"></div>
+      </div>
+
+      <div class="card">
+        <h2>User Login</h2>
+        <form id="loginForm">
+          <input id="loginUsername" placeholder="Enter username" required />
+          <input id="loginPassword" type="password" placeholder="Enter password" required />
+          <button type="submit">Login</button>
+        </form>
+        <div id="loginMessage" class="message"></div>
+      </div>
+    </div>
+
+    <section id="plannerSection" class="planner-section">
+      <div class="planner-visual">
+        <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=900&q=80" alt="Decorated celebration venue" />
+      </div>
+      <div>
+        <h2>Occasion Planner</h2>
+        <p>Choose your celebration type and set your budget to receive a customized recommendation.</p>
+        <form id="plannerForm">
+          <select id="occasionSelect" required>
+            <option value="">Select an occasion</option>
+            <option value="Birthday">Birthday</option>
+            <option value="Wedding">Wedding</option>
+            <option value="Anniversary">Anniversary</option>
+            <option value="Graduation">Graduation</option>
+          </select>
+          <input id="budgetInput" type="number" min="1" placeholder="Enter your budget" required />
+          <button type="submit">Get Recommendation</button>
+        </form>
+        <div id="plannerResult" class="result"></div>
+        <div class="contact">
+          For enquiries, call or message us at <a href="tel:8688581098">+91 8688581098</a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const ownerUsername = "kolkar nisha";
+    const ownerPassword = "njz";
+
+    const occasions = {
+      Birthday: {
+        min_price: 5000,
+        max_price: 20000,
+        facilities: {
+          5000: "Basic decoration, cake, and music",
+          10000: "Decoration, cake, DJ, photography",
+          20000: "Luxury venue, catering, DJ, photography, themed decor"
+        }
+      },
+      Wedding: {
+        min_price: 50000,
+        max_price: 500000,
+        facilities: {
+          50000: "Simple ceremony setup, basic catering",
+          200000: "Venue, catering, photography, decoration",
+          500000: "Luxury venue, premium catering, photography, videography, live music"
+        }
+      },
+      Anniversary: {
+        min_price: 10000,
+        max_price: 100000,
+        facilities: {
+          10000: "Dinner setup, flowers, cake",
+          50000: "Venue, catering, decoration, photography",
+          100000: "Luxury venue, premium catering, live music, themed decor"
+        }
+      },
+      Graduation: {
+        min_price: 8000,
+        max_price: 50000,
+        facilities: {
+          8000: "Basic hall setup, snacks, photography",
+          20000: "Venue, catering, DJ, photography",
+          50000: "Premium venue, catering, DJ, photography, decor"
+        }
+      }
+    };
+
+    function showMessage(element, text, type) {
+      element.textContent = text;
+      element.className = `message ${type}`;
+    }
+
+    function loadUsers() {
+      return JSON.parse(localStorage.getItem("farsayUsers") || "{}")
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem("farsayUsers", JSON.stringify(users));
+    }
+
+    document.getElementById("registerForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const username = document.getElementById("regUsername").value.trim();
+      const password = document.getElementById("regPassword").value;
+      const users = loadUsers();
+
+      if (!username || !password) {
+        showMessage(document.getElementById("registerMessage"), "Please fill both fields.", "error");
+        return;
+      }
+
+      if (users[username]) {
+        showMessage(document.getElementById("registerMessage"), "Username already exists. Try another.", "error");
+        return;
+      }
+
+      users[username] = password;
+      saveUsers(users);
+      showMessage(document.getElementById("registerMessage"), `User '${username}' registered successfully!`, "success");
+      this.reset();
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      const users = loadUsers();
+
+      if (username === ownerUsername && password === ownerPassword) {
+        showMessage(document.getElementById("loginMessage"), "Owner login successful! Owner access does not include event planning details.", "success");
+        document.getElementById("plannerSection").classList.remove("show");
+      } else if (users[username] && users[username] === password) {
+        showMessage(document.getElementById("loginMessage"), `Welcome back, ${username}! You are logged in to FarSay BondBridge.`, "success");
+        document.getElementById("plannerSection").classList.add("show");
+      } else {
+        showMessage(document.getElementById("loginMessage"), "Invalid username or password. Please try again.", "error");
+        document.getElementById("plannerSection").classList.remove("show");
+      }
+    });
+
+    document.getElementById("plannerForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const occasion = document.getElementById("occasionSelect").value;
+      const budget = Number(document.getElementById("budgetInput").value);
+      const details = occasions[occasion];
+
+      if (!details) {
+        document.getElementById("plannerResult").innerHTML = "Please select a valid occasion.";
+        return;
+      }
+
+      const closestKey = Object.keys(details.facilities).reduce((best, current) =>
+        Math.abs(Number(current) - budget) < Math.abs(Number(best) - budget) ? current : best
+      );
+
+      document.getElementById("plannerResult").innerHTML = `
+        <strong>${occasion}</strong> celebration price range: ${details.min_price} - ${details.max_price} INR<br><br>
+        Based on your budget (${budget} INR), we recommend:<br>
+        <em>${details.facilities[closestKey]}</em>
+      `;
+    });
+  </script>
+</body>
+</html>
