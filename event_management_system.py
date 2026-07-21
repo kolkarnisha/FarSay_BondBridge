@@ -1,10 +1,35 @@
+from pymongo import MongoClient
+from datetime import datetime
+
 print("FarSayBondBridge")
+
+# MongoDB Connection
+MONGODB_USERNAME = "neeshakolkar_db_user"
+MONGODB_PASSWORD = "K9vpkBlYe9fzaVsw"
+MONGODB_CLUSTER = "cluster0.mongodb.net"  # Update this with your actual cluster address
+DATABASE_NAME = "farsay_bondbridge"
+
+# MongoDB Connection String
+MONGODB_URI = f"mongodb+srv://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@{MONGODB_CLUSTER}/{DATABASE_NAME}?retryWrites=true&w=majority"
+
+# Initialize MongoDB client
+try:
+    client = MongoClient(MONGODB_URI)
+    db = client[DATABASE_NAME]
+    users_collection = db["users"]
+    events_collection = db["events"]
+    print("✓ Connected to MongoDB successfully!")
+except Exception as e:
+    print(f"✗ MongoDB connection failed: {e}")
+    db = None
+    users_collection = None
+    events_collection = None
 
 # Set the owner's personal login details here
 OWNER_USERNAME = "kolkar nisha"
 OWNER_PASSWORD = "njz"
 
-# Dictionary to store user credentials
+# Fallback dictionary to store user credentials if DB fails
 users = {}
 
 # Occasion details with price ranges and facilities
@@ -51,12 +76,36 @@ occasions = {
 def register_user():
     print("=== User Registration ===")
     username = input("Enter a username: ")
+    
+    # Check if user exists in MongoDB
+    if users_collection and users_collection.find_one({"username": username}):
+        print("Username already exists. Try another.")
+        return
+    
+    # Fallback check for in-memory storage
     if username in users:
         print("Username already exists. Try another.")
         return
+    
     password = input("Enter a password: ")
-    users[username] = password
-    print(f"User '{username}' registered successfully!\n")
+    
+    # Store in MongoDB
+    if users_collection:
+        try:
+            user_data = {
+                "username": username,
+                "password": password,
+                "created_at": datetime.now()
+            }
+            users_collection.insert_one(user_data)
+            print(f"User '{username}' registered successfully in database!\n")
+        except Exception as e:
+            print(f"Database error: {e}")
+            users[username] = password
+            print(f"User '{username}' registered locally!\n")
+    else:
+        users[username] = password
+        print(f"User '{username}' registered successfully!\n")
 
 
 def login_user():
@@ -69,14 +118,28 @@ def login_user():
         print("Owner access does not include event planning details.\n")
         return
 
-    if username in users and users[username] == password:
+    # Check MongoDB first
+    user_valid = False
+    if users_collection:
+        try:
+            user = users_collection.find_one({"username": username, "password": password})
+            if user:
+                user_valid = True
+        except Exception as e:
+            print(f"Database query error: {e}")
+    
+    # Fallback to in-memory storage
+    if not user_valid and username in users and users[username] == password:
+        user_valid = True
+
+    if user_valid:
         print(f"Welcome back, {username}! You are logged in to farsaybondbridge.\n")
-        occasion_planner()
+        occasion_planner(username)
     else:
         print("Invalid username or password. Please try again.\n")
 
 
-def occasion_planner():
+def occasion_planner(username):
     print("=== Occasion Planner ===")
     options = list(occasions.keys())
     print("Available occasions:")
@@ -113,7 +176,22 @@ def occasion_planner():
     closest = min(details["facilities"].keys(), key=lambda x: abs(int(x) - budget))
     print(f"\nBased on your budget ({budget} INR), we recommend:")
     print(details["facilities"][closest])
-    print("\nFor enquiries, call or message us at: [9876543210](tel:9876543210)")
+    print("\nFor enquiries, call or message us at: [8688581098](tel:8688581098)")
+    
+    # Save event booking to MongoDB
+    if events_collection:
+        try:
+            event_data = {
+                "username": username,
+                "occasion": selected_occasion,
+                "budget": budget,
+                "recommended_package": details["facilities"][closest],
+                "created_at": datetime.now()
+            }
+            events_collection.insert_one(event_data)
+            print("✓ Event booking saved to database!")
+        except Exception as e:
+            print(f"Could not save event to database: {e}")
 
 
 def main():

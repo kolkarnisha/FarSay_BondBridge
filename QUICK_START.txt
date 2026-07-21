@@ -1,0 +1,43 @@
+╔══════════════════════════════════════════════════════════════╗
+║         FARSAY BONDBRIDGE - MONGODB QUICK START              ║
+╚══════════════════════════════════════════════════════════════╝
+
+📦 STEP 1: INSTALL PACKAGES (30 seconds)
+   Double-click: install_packages.bat
+   OR run: pip install pymongo dnspython
+
+🌐 STEP 2: SET UP MONGODB ATLAS (5 minutes)
+   1. Go to: https://www.mongodb.com/cloud/atlas
+   2. Sign up (free)
+   3. Create cluster (M0 Free tier)
+   4. Add database user:
+      Username: neeshakolkar_db_user
+      Password: K9vpkBlYe9fzaVsw
+   5. Set network access: "Allow Access from Anywhere"
+   6. Get cluster address from connection string
+      (looks like: cluster0.xxxxx.mongodb.net)
+
+✏️ STEP 3: UPDATE CONFIG (30 seconds)
+   Edit: event_management_system.py
+   Line 9: Change "cluster0.mongodb.net" 
+   To your actual cluster address
+
+🧪 STEP 4: TEST (30 seconds)
+   Run: python test_mongodb_connection.py
+   Should see: "✓ Connection successful!"
+
+🚀 STEP 5: RUN APP
+   Run: python event_management_system.py
+   Should see: "✓ Connected to MongoDB successfully!"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+YOUR CREDENTIALS:
+  Username: neeshakolkar_db_user
+  Password: K9vpkBlYe9fzaVsw
+  Database: farsay_bondbridge
+
+HELP: Read SETUP_GUIDE.md for detailed instructions
+CONTACT: 8688581098
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
