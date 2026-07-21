@@ -8,6 +8,8 @@
 </head>
 <body>
   <div class="container">
+
+    <!-- Hero -->
     <section class="hero">
       <div>
         <span class="badge">Luxury • Elegant • Memorable</span>
@@ -23,6 +25,7 @@
       </div>
     </section>
 
+    <!-- Feature highlights -->
     <div class="highlights">
       <div class="feature-card">
         <h3>Elegant Themes</h3>
@@ -38,6 +41,7 @@
       </div>
     </div>
 
+    <!-- Register + Login -->
     <div class="grid">
       <div class="card">
         <h2>User Registration</h2>
@@ -60,6 +64,7 @@
       </div>
     </div>
 
+    <!-- Occasion Planner (shown after user login) -->
     <section id="plannerSection" class="planner-section">
       <div class="planner-visual">
         <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=900&q=80" alt="Decorated celebration venue" />
@@ -75,7 +80,7 @@
             <option value="Anniversary">Anniversary</option>
             <option value="Graduation">Graduation</option>
           </select>
-          <input id="budgetInput" type="number" min="1" placeholder="Enter your budget" required />
+          <input id="budgetInput" type="number" min="1" placeholder="Enter your budget (INR)" required />
           <button type="submit">Get Recommendation</button>
         </form>
         <div id="plannerResult" class="result"></div>
@@ -84,125 +89,359 @@
         </div>
       </div>
     </section>
-  </div>
+
+    <!-- ── DATA TABLES (visible to owner + after any login) ── -->
+    <section id="dataTables" class="data-tables-section" style="display:none;">
+
+      <!-- Stats -->
+      <div class="data-stats">
+        <div class="data-stat-card">
+          <div class="data-stat-num" id="statUsers">0</div>
+          <div class="data-stat-label">Registered Users</div>
+        </div>
+        <div class="data-stat-card">
+          <div class="data-stat-num" id="statEvents">0</div>
+          <div class="data-stat-label">Event Bookings</div>
+        </div>
+        <div class="data-stat-card">
+          <div class="data-stat-num" id="statTop">—</div>
+          <div class="data-stat-label">Top Occasion</div>
+        </div>
+      </div>
+
+      <!-- Users table -->
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-section-title"><span class="dot"></span>Registered Users</div>
+          <div class="data-toolbar">
+            <input class="data-search" id="userSearch" placeholder="Search users…" oninput="filterUsers()" />
+            <button class="data-export-btn" onclick="exportCSV('users')">Export CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="usersTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Password</th>
+                <th>Registered On</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="usersBody">
+              <tr><td colspan="5" class="no-data">No users registered yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Events table -->
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-section-title"><span class="dot"></span>Event Bookings</div>
+          <div class="data-toolbar">
+            <input class="data-search" id="eventSearch" placeholder="Search events…" oninput="filterEvents()" />
+            <button class="data-export-btn" onclick="exportCSV('events')">Export CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="eventsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Occasion</th>
+                <th>Budget (INR)</th>
+                <th>Recommended Package</th>
+                <th>Booked On</th>
+              </tr>
+            </thead>
+            <tbody id="eventsBody">
+              <tr><td colspan="6" class="no-data">No event bookings yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section><!-- /dataTables -->
+
+  </div><!-- /container -->
 
   <script>
-    const ownerUsername = "kolkar nisha";
-    const ownerPassword = "njz";
+    /* ════════════════════════════════════════
+       CONFIG
+    ════════════════════════════════════════ */
+    const OWNER_USERNAME = "kolkar nisha";
+    const OWNER_PASSWORD = "njz";
 
     const occasions = {
-      Birthday: {
-        min_price: 5000,
-        max_price: 20000,
-        facilities: {
-          5000: "Basic decoration, cake, and music",
-          10000: "Decoration, cake, DJ, photography",
-          20000: "Luxury venue, catering, DJ, photography, themed decor"
-        }
-      },
-      Wedding: {
-        min_price: 50000,
-        max_price: 500000,
-        facilities: {
-          50000: "Simple ceremony setup, basic catering",
-          200000: "Venue, catering, photography, decoration",
-          500000: "Luxury venue, premium catering, photography, videography, live music"
-        }
-      },
-      Anniversary: {
-        min_price: 10000,
-        max_price: 100000,
-        facilities: {
-          10000: "Dinner setup, flowers, cake",
-          50000: "Venue, catering, decoration, photography",
-          100000: "Luxury venue, premium catering, live music, themed decor"
-        }
-      },
-      Graduation: {
-        min_price: 8000,
-        max_price: 50000,
-        facilities: {
-          8000: "Basic hall setup, snacks, photography",
-          20000: "Venue, catering, DJ, photography",
-          50000: "Premium venue, catering, DJ, photography, decor"
-        }
-      }
+      Birthday:    { min_price: 5000,  max_price: 20000,  facilities: { 5000: "Basic decoration, cake, and music", 10000: "Decoration, cake, DJ, photography", 20000: "Luxury venue, catering, DJ, photography, themed decor" } },
+      Wedding:     { min_price: 50000, max_price: 500000, facilities: { 50000: "Simple ceremony setup, basic catering", 200000: "Venue, catering, photography, decoration", 500000: "Luxury venue, premium catering, photography, videography, live music" } },
+      Anniversary: { min_price: 10000, max_price: 100000, facilities: { 10000: "Dinner setup, flowers, cake", 50000: "Venue, catering, decoration, photography", 100000: "Luxury venue, premium catering, live music, themed decor" } },
+      Graduation:  { min_price: 8000,  max_price: 50000,  facilities: { 8000: "Basic hall setup, snacks, photography", 20000: "Venue, catering, DJ, photography", 50000: "Premium venue, catering, DJ, photography, decor" } }
     };
 
-    function showMessage(element, text, type) {
-      element.textContent = text;
-      element.className = `message ${type}`;
+    /* ════════════════════════════════════════
+       STORAGE HELPERS
+    ════════════════════════════════════════ */
+    function loadUsers()  { return JSON.parse(localStorage.getItem("farsayUsers")  || "{}"); }
+    function loadEvents() { return JSON.parse(localStorage.getItem("farsayEvents") || "[]"); }
+
+    function saveUsers(u)  { localStorage.setItem("farsayUsers",  JSON.stringify(u)); }
+    function saveEvents(e) { localStorage.setItem("farsayEvents", JSON.stringify(e)); }
+
+    /* ════════════════════════════════════════
+       UTILITIES
+    ════════════════════════════════════════ */
+    function showMessage(el, text, type) {
+      el.textContent = text;
+      el.className = `message ${type}`;
     }
 
-    function loadUsers() {
-      return JSON.parse(localStorage.getItem("farsayUsers") || "{}")
+    function fmtDate(iso) {
+      try { return new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }); }
+      catch { return iso; }
     }
 
-    function saveUsers(users) {
-      localStorage.setItem("farsayUsers", JSON.stringify(users));
+    function maskPwd(p) { return "•".repeat(Math.min((p||"").length, 8)); }
+
+    function escHtml(s) {
+      return String(s || "")
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
     }
 
-    document.getElementById("registerForm").addEventListener("submit", function (e) {
+    /* ════════════════════════════════════════
+       REGISTRATION
+    ════════════════════════════════════════ */
+    document.getElementById("registerForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const username = document.getElementById("regUsername").value.trim();
       const password = document.getElementById("regPassword").value;
-      const users = loadUsers();
+      const msgEl    = document.getElementById("registerMessage");
+      const users    = loadUsers();
 
-      if (!username || !password) {
-        showMessage(document.getElementById("registerMessage"), "Please fill both fields.", "error");
-        return;
-      }
+      if (!username || !password) { showMessage(msgEl, "Please fill both fields.", "error"); return; }
+      if (users[username])        { showMessage(msgEl, "Username already exists. Try another.", "error"); return; }
 
-      if (users[username]) {
-        showMessage(document.getElementById("registerMessage"), "Username already exists. Try another.", "error");
-        return;
-      }
-
-      users[username] = password;
+      // Save user with timestamp
+      users[username] = { password, registeredAt: new Date().toISOString() };
       saveUsers(users);
-      showMessage(document.getElementById("registerMessage"), `User '${username}' registered successfully!`, "success");
+
+      showMessage(msgEl, `User '${username}' registered successfully!`, "success");
       this.reset();
+      refreshTables();   // update tables immediately
     });
 
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
+    /* ════════════════════════════════════════
+       LOGIN
+    ════════════════════════════════════════ */
+    let loggedInUser = null;
+
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const username = document.getElementById("loginUsername").value.trim();
       const password = document.getElementById("loginPassword").value;
-      const users = loadUsers();
+      const msgEl    = document.getElementById("loginMessage");
+      const users    = loadUsers();
 
-      if (username === ownerUsername && password === ownerPassword) {
-        showMessage(document.getElementById("loginMessage"), "Owner login successful! Owner access does not include event planning details.", "success");
+      if (username === OWNER_USERNAME && password === OWNER_PASSWORD) {
+        showMessage(msgEl, "Owner login successful! Viewing all data below.", "success");
         document.getElementById("plannerSection").classList.remove("show");
-      } else if (users[username] && users[username] === password) {
-        showMessage(document.getElementById("loginMessage"), `Welcome back, ${username}! You are logged in to FarSay BondBridge.`, "success");
-        document.getElementById("plannerSection").classList.add("show");
-      } else {
-        showMessage(document.getElementById("loginMessage"), "Invalid username or password. Please try again.", "error");
-        document.getElementById("plannerSection").classList.remove("show");
-      }
-    });
-
-    document.getElementById("plannerForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const occasion = document.getElementById("occasionSelect").value;
-      const budget = Number(document.getElementById("budgetInput").value);
-      const details = occasions[occasion];
-
-      if (!details) {
-        document.getElementById("plannerResult").innerHTML = "Please select a valid occasion.";
+        showDataTables();
         return;
       }
 
-      const closestKey = Object.keys(details.facilities).reduce((best, current) =>
-        Math.abs(Number(current) - budget) < Math.abs(Number(best) - budget) ? current : best
+      const record = users[username];
+      const valid  = record
+        ? record.password === password           // new format {password, registeredAt}
+        : false;
+
+      if (valid) {
+        loggedInUser = username;
+        showMessage(msgEl, `Welcome back, ${username}! You are logged in to FarSay BondBridge.`, "success");
+        document.getElementById("plannerSection").classList.add("show");
+        showDataTables();
+      } else {
+        showMessage(msgEl, "Invalid username or password. Please try again.", "error");
+        document.getElementById("plannerSection").classList.remove("show");
+      }
+    });
+
+    /* ════════════════════════════════════════
+       OCCASION PLANNER
+    ════════════════════════════════════════ */
+    document.getElementById("plannerForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const occasion = document.getElementById("occasionSelect").value;
+      const budget   = Number(document.getElementById("budgetInput").value);
+      const details  = occasions[occasion];
+
+      if (!details) { document.getElementById("plannerResult").innerHTML = "Please select a valid occasion."; return; }
+
+      const closestKey = Object.keys(details.facilities).reduce((best, cur) =>
+        Math.abs(Number(cur) - budget) < Math.abs(Number(best) - budget) ? cur : best
       );
+      const pkg = details.facilities[closestKey];
 
       document.getElementById("plannerResult").innerHTML = `
-        <strong>${occasion}</strong> celebration price range: ${details.min_price} - ${details.max_price} INR<br><br>
-        Based on your budget (${budget} INR), we recommend:<br>
-        <em>${details.facilities[closestKey]}</em>
+        <strong>${escHtml(occasion)}</strong> price range: ₹${details.min_price.toLocaleString("en-IN")} – ₹${details.max_price.toLocaleString("en-IN")}<br><br>
+        Based on your budget (₹${budget.toLocaleString("en-IN")}), we recommend:<br>
+        <em>${escHtml(pkg)}</em>
       `;
+
+      // ── Save booking to localStorage ──
+      const events = loadEvents();
+      events.push({
+        username:  loggedInUser || "guest",
+        occasion,
+        budget,
+        recommended_package: pkg,
+        bookedAt: new Date().toISOString()
+      });
+      saveEvents(events);
+      refreshTables();   // update tables immediately
     });
+
+    /* ════════════════════════════════════════
+       SHOW / REFRESH TABLES
+    ════════════════════════════════════════ */
+    function showDataTables() {
+      document.getElementById("dataTables").style.display = "block";
+      refreshTables();
+    }
+
+    let allUsers   = [];
+    let allEvents  = [];
+    let filtUsers  = [];
+    let filtEvents = [];
+
+    function refreshTables() {
+      const usersObj = loadUsers();
+      allUsers  = Object.entries(usersObj).map(([username, val]) => ({
+        username,
+        password:     typeof val === "object" ? val.password    : val,
+        registeredAt: typeof val === "object" ? val.registeredAt : null
+      }));
+      allEvents = loadEvents();
+
+      filtUsers  = [...allUsers];
+      filtEvents = [...allEvents];
+
+      renderStats();
+      renderUsers();
+      renderEvents();
+    }
+
+    /* ── Stats ── */
+    function renderStats() {
+      document.getElementById("statUsers").textContent  = allUsers.length;
+      document.getElementById("statEvents").textContent = allEvents.length;
+      const counts = {};
+      allEvents.forEach(e => { counts[e.occasion] = (counts[e.occasion] || 0) + 1; });
+      const top = Object.entries(counts).sort((a,b) => b[1]-a[1])[0];
+      document.getElementById("statTop").textContent = top ? top[0] : "—";
+    }
+
+    /* ── Users Table ── */
+    function renderUsers() {
+      const tbody = document.getElementById("usersBody");
+      if (!filtUsers.length) {
+        tbody.innerHTML = `<tr><td colspan="5" class="no-data">No users registered yet.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = filtUsers.map((u, i) => {
+        const pid = `upwd-${i}`;
+        return `
+          <tr>
+            <td>${i + 1}</td>
+            <td><strong>${escHtml(u.username)}</strong></td>
+            <td>
+              <span id="${pid}" class="pwd-masked">${maskPwd(u.password)}</span>
+              <button class="pwd-eye" onclick="togglePwd('${pid}','${escHtml(u.password)}')" title="Show/hide">👁</button>
+            </td>
+            <td>${u.registeredAt ? fmtDate(u.registeredAt) : "—"}</td>
+            <td><button class="del-btn" onclick="deleteUser('${escHtml(u.username)}')">Delete</button></td>
+          </tr>`;
+      }).join("");
+    }
+
+    /* ── Events Table ── */
+    function renderEvents() {
+      const tbody = document.getElementById("eventsBody");
+      if (!filtEvents.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="no-data">No event bookings yet.</td></tr>`;
+        return;
+      }
+      const badgeClass = { Birthday:"bdg-birthday", Wedding:"bdg-wedding", Anniversary:"bdg-anniversary", Graduation:"bdg-graduation" };
+      tbody.innerHTML = filtEvents.map((ev, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><strong>${escHtml(ev.username)}</strong></td>
+          <td><span class="occasion-badge ${badgeClass[ev.occasion] || ''}">${escHtml(ev.occasion)}</span></td>
+          <td>₹${Number(ev.budget).toLocaleString("en-IN")}</td>
+          <td>${escHtml(ev.recommended_package)}</td>
+          <td>${ev.bookedAt ? fmtDate(ev.bookedAt) : "—"}</td>
+        </tr>`).join("");
+    }
+
+    /* ── Search ── */
+    function filterUsers() {
+      const q = document.getElementById("userSearch").value.toLowerCase();
+      filtUsers = allUsers.filter(u => u.username.toLowerCase().includes(q));
+      renderUsers();
+    }
+    function filterEvents() {
+      const q = document.getElementById("eventSearch").value.toLowerCase();
+      filtEvents = allEvents.filter(e =>
+        e.username.toLowerCase().includes(q) ||
+        (e.occasion||"").toLowerCase().includes(q)
+      );
+      renderEvents();
+    }
+
+    /* ── Password toggle ── */
+    function togglePwd(spanId, real) {
+      const el = document.getElementById(spanId);
+      el.textContent = el.textContent.startsWith("•") ? real : maskPwd(real);
+    }
+
+    /* ── Delete user ── */
+    function deleteUser(username) {
+      if (!confirm(`Delete user "${username}"? This cannot be undone.`)) return;
+      const users = loadUsers();
+      delete users[username];
+      saveUsers(users);
+      refreshTables();
+    }
+
+    /* ── Export CSV ── */
+    function exportCSV(type) {
+      let rows, filename;
+      if (type === "users") {
+        rows = [["#","Username","Password","Registered On"],
+                ...allUsers.map((u,i) => [i+1, u.username, u.password, u.registeredAt ? fmtDate(u.registeredAt) : "—"])];
+        filename = "farsay_users.csv";
+      } else {
+        rows = [["#","Username","Occasion","Budget (INR)","Recommended Package","Booked On"],
+                ...allEvents.map((e,i) => [i+1, e.username, e.occasion, e.budget, e.recommended_package, e.bookedAt ? fmtDate(e.bookedAt) : "—"])];
+        filename = "farsay_events.csv";
+      }
+      const csv  = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const a    = document.createElement("a");
+      a.href     = URL.createObjectURL(blob);
+      a.download = filename;
+      a.click();
+    }
+
+    /* ── Init: re-render tables if already stored data exists ── */
+    (function init() {
+      const users  = loadUsers();
+      const events = loadEvents();
+      if (Object.keys(users).length || events.length) refreshTables();
+    })();
   </script>
 </body>
 </html>
