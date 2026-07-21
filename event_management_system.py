@@ -1,13 +1,28 @@
 from pymongo import MongoClient
 from datetime import datetime
+from dotenv import load_dotenv
+import os
 
 print("FarSayBondBridge")
 
-# MongoDB Connection
-MONGODB_USERNAME = "neeshakolkar_db_user"
-MONGODB_PASSWORD = "K9vpkBlYe9fzaVsw"
-MONGODB_CLUSTER = "cluster0.mongodb.net"  # Update this with your actual cluster address
-DATABASE_NAME = "farsay_bondbridge"
+# Load environment variables from .env file
+load_dotenv()
+
+# MongoDB Connection - Load from environment variables
+MONGODB_USERNAME = os.getenv("MONGODB_USERNAME")
+MONGODB_PASSWORD = os.getenv("MONGODB_PASSWORD")
+MONGODB_CLUSTER = os.getenv("MONGODB_CLUSTER")
+DATABASE_NAME = os.getenv("DATABASE_NAME")
+
+# Owner credentials - Load from environment variables
+OWNER_USERNAME = os.getenv("OWNER_USERNAME")
+OWNER_PASSWORD = os.getenv("OWNER_PASSWORD")
+
+# Validate that all required environment variables are set
+if not all([MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_CLUSTER, DATABASE_NAME]):
+    print("✗ Error: Missing MongoDB configuration in .env file")
+    print("Please ensure MONGODB_USERNAME, MONGODB_PASSWORD, MONGODB_CLUSTER, and DATABASE_NAME are set")
+    exit(1)
 
 # MongoDB Connection String
 MONGODB_URI = f"mongodb+srv://{MONGODB_USERNAME}:{MONGODB_PASSWORD}@{MONGODB_CLUSTER}/{DATABASE_NAME}?retryWrites=true&w=majority"
@@ -24,10 +39,6 @@ except Exception as e:
     db = None
     users_collection = None
     events_collection = None
-
-# Set the owner's personal login details here
-OWNER_USERNAME = "kolkar nisha"
-OWNER_PASSWORD = "njz"
 
 # Fallback dictionary to store user credentials if DB fails
 users = {}

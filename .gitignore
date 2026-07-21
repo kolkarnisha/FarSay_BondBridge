@@ -6,6 +6,9 @@
 # MongoDB config with credentials
 mongodb_config.py
 
+# Data exports (contains user data)
+db_export.json
+
 # Python cache
 __pycache__/
 *.pyc
